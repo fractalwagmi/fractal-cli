@@ -1,3 +1,3 @@
 module github.com/fractalwagmi/fractal-cli
 
-go 1.20
+go 1.19
