@@ -19,10 +19,7 @@ func TestGenerateCrc32c(t *testing.T) {
 	localFilename := filepath.Join(tempDir, uuid.NewString()+".png")
 	downloadFile(t, "https://storage.googleapis.com/fractal-game-releases-test/dog_that_goes_everywhere.png", localFilename)
 
-	fr, err := os.Open(localFilename)
-	require.NoError(t, err)
-
-	hash, err := crc32c.GenerateCrc32C(fr)
+	hash, err := crc32c.GenerateCrc32C(localFilename)
 	require.NoError(t, err)
 
 	require.Equal(t, "C6DjLg==", b64.StdEncoding.EncodeToString(hash))
