@@ -1,11 +1,17 @@
 package auth
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 )
+
+type token struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+}
 
 func GenerateToken(clientId string, clientSecret string) (string, error) {
 	url := "https://auth-api.fractal.is/auth/oauth/token"
@@ -24,5 +30,12 @@ func GenerateToken(clientId string, clientSecret string) (string, error) {
 
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
-	return string(body), nil
+
+	out := &token{}
+	err = json.Unmarshal(body, out)
+	if err != nil {
+		return "", err
+	}
+
+	return out.AccessToken, nil
 }
