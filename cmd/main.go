@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/fractalwagmi/fractal-cli/pkg/auth"
+	"github.com/fractalwagmi/fractal-cli/pkg/crc32c"
 )
 
 type Args struct {
@@ -30,8 +31,13 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error generating token: %s\n", err)
 	}
+	fmt.Printf("Auth token: %s\n", token)
 
-	fmt.Printf("Token: %s\n", token)
+	crc32c, err := crc32c.GenerateCrc32C(args.archive)
+	if err != nil {
+		log.Fatalf("Error generating crc32c: %s\n", err)
+	}
+	fmt.Printf("crc32c: %s\n", crc32c)
 }
 
 func validateArguments(args Args) {
