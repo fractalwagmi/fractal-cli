@@ -11,6 +11,7 @@ import (
 	"github.com/fractalwagmi/fractal-cli/pkg/crc32c"
 	testing2 "github.com/fractalwagmi/fractal-cli/pkg/testing"
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +23,7 @@ func TestGenerateCrc32c(t *testing.T) {
 	hash, err := crc32c.GenerateCrc32C(localFilename)
 	require.NoError(t, err)
 
-	require.Equal(t, "C6DjLg==", b64.StdEncoding.EncodeToString(hash))
+	assert.Equal(t, "C6DjLg==", b64.StdEncoding.EncodeToString(hash))
 }
 
 func downloadFile(t *testing.T, inputUrl string, destFile string) {
