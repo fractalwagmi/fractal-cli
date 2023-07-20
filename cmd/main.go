@@ -1,6 +1,7 @@
 package main
 
 import (
+	b64 "encoding/base64"
 	"flag"
 	"fmt"
 	"log"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/fractalwagmi/fractal-cli/pkg/auth"
 	"github.com/fractalwagmi/fractal-cli/pkg/crc32c"
+	"github.com/fractalwagmi/fractal-cli/pkg/sdk"
 )
 
 type Args struct {
@@ -37,7 +39,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error generating crc32c: %s\n", err)
 	}
-	fmt.Printf("crc32c: %s\n", crc32c)
+	fmt.Printf("crc32c: %s\n", b64.StdEncoding.EncodeToString(crc32c))
+
+	res, err := sdk.CreateBuild(token)
+	if err != nil {
+		log.Fatalf("Error creating build: %s\n", err)
+	}
+
+	fmt.Printf("Create build response: %v\n", res)
 }
 
 func validateArguments(args Args) {
