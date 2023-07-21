@@ -23,8 +23,7 @@ func UploadFile(url string, file string) error {
 	}
 	req.Header.Set("Content-Type", "application/zip")
 
-	client := &http.Client{}
-	res, err := client.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
