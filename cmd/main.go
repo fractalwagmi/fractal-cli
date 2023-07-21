@@ -1,7 +1,6 @@
 package main
 
 import (
-	b64 "encoding/base64"
 	"flag"
 	"fmt"
 	"log"
@@ -42,7 +41,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error generating crc32c: %s\n", err)
 	}
-	fmt.Printf("crc32c: %s\n", b64.StdEncoding.EncodeToString(crc32c))
 
 	displayName := args.displayName
 	if displayName == "" {
