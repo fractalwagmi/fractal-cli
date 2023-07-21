@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/fractalwagmi/fractal-cli/pkg/auth"
@@ -30,6 +31,13 @@ var platforms = map[string]bool{
 }
 
 func main() {
+	// TODO(john): route to subcommand when there are more than one.
+	command := os.Args[1]
+	if command != "upload" {
+		log.Fatalf("Invalid command: %s\n", command)
+	}
+	os.Args = os.Args[1:]
+
 	args := Args{}
 
 	flag.StringVar(&args.archive, "zip", "", "path to .zip archive of game binary")
