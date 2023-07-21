@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+*.sh
 .DS_Store
 main
 
