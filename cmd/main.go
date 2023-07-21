@@ -23,6 +23,12 @@ type Args struct {
 	macInnerExecutable string
 }
 
+var platforms = map[string]bool{
+	"WINDOWS":   true,
+	"MAC":       true,
+	"UNIVERSAL": true,
+}
+
 func main() {
 	args := Args{}
 
@@ -79,5 +85,33 @@ func validateArguments(args Args) {
 	}
 	if len(args.clientSecret) == 0 {
 		log.Fatalf("Invalid clientSecret: %s\n", args.clientSecret)
+	}
+
+	// validate platform
+	if !platforms[args.platform] {
+		log.Fatalf("Invalid platform: %s\n", args.platform)
+	}
+
+	// required fields
+	if args.platform == "WINDOWS" || args.platform == "UNIVERSAL" {
+		if len(args.exeFile) == 0 {
+			log.Fatal("Missing exeFile\n")
+		}
+	}
+	if args.platform == "MAC" || args.platform == "UNIVERSAL" {
+		if len(args.macAppDirectory) == 0 {
+			log.Fatal("Missing mac app directory\n")
+		}
+		if len(args.macInnerExecutable) == 0 {
+			log.Fatal("Missing mac inner executable\n")
+		}
+	}
+
+	// excluded fields
+	if args.platform == "WINDOWS" && (len(args.macAppDirectory) > 0 || len(args.macInnerExecutable) > 0) {
+		log.Fatal("Mac fields (app directory or inner executable) were defined for a windows build.\n")
+	}
+	if args.platform == "MAC" && len(args.exeFile) > 0 {
+		log.Fatal("Windows fields were defined for a mac build.\n")
 	}
 }
