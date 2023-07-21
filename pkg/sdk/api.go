@@ -16,8 +16,8 @@ type CreateBuildRequest struct {
 }
 
 type CreateBuildResponse struct {
-	UploadUrl   string `json:"upload_url"`
-	BuildNumber uint32 `json:"build_number"`
+	UploadUrl   string `json:"uploadUrl"`
+	BuildNumber uint32 `json:"buildNumber"`
 }
 
 // Creates a build and returns an upload URL to upload the binary
