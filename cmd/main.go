@@ -10,12 +10,14 @@ import (
 	"github.com/fractalwagmi/fractal-cli/pkg/auth"
 	"github.com/fractalwagmi/fractal-cli/pkg/crc32c"
 	"github.com/fractalwagmi/fractal-cli/pkg/sdk"
+	"github.com/fractalwagmi/fractal-cli/pkg/storage"
 )
 
 type Args struct {
 	archive      string
 	clientId     string
 	clientSecret string
+	displayName  string
 }
 
 func main() {
@@ -24,6 +26,7 @@ func main() {
 	flag.StringVar(&args.archive, "zip", "", "path to .zip archive of game binary")
 	flag.StringVar(&args.clientId, "clientId", "", "Fractal client id")
 	flag.StringVar(&args.clientSecret, "clientSecret", "", "Fractal client secret")
+	flag.StringVar(&args.displayName, "displayName", "", "Display name for the build file (optional, not shown to end users)")
 
 	flag.Parse()
 
@@ -41,12 +44,22 @@ func main() {
 	}
 	fmt.Printf("crc32c: %s\n", b64.StdEncoding.EncodeToString(crc32c))
 
-	res, err := sdk.CreateBuild(token)
+	displayName := args.displayName
+	if displayName == "" {
+		displayName = args.archive[strings.LastIndex(args.archive, "/")+1:]
+	}
+
+	res, err := sdk.CreateBuild(token, crc32c, displayName)
 	if err != nil {
 		log.Fatalf("Error creating build: %s\n", err)
 	}
 
-	fmt.Printf("Create build response: %v\n", res)
+	err = storage.UploadFile(res.UploadUrl, args.archive)
+	if err != nil {
+		log.Fatalf("Error uploading file: %s\n", err)
+	}
+
+	// TODO(john): once upload is complete, configure build with appropriate platform configs.
 }
 
 func validateArguments(args Args) {
