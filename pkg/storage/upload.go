@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	chunkSize = 1 << 22 // 4MB in bytes
+	defaultChunkSize = 1 << 22 // 4MB in bytes
 )
 
 func UploadFile(httpClient *http.Client, uploadUrl string, filePath string) error {
@@ -31,8 +31,8 @@ func UploadFile(httpClient *http.Client, uploadUrl string, filePath string) erro
 	log.Println("Uploading file...")
 
 	// Upload file in chunks with retry policy for resilience against transient connectivity errors.
-	for offset := int64(0); offset < fileSize; offset += chunkSize {
-		chunk := make([]byte, chunkSize)
+	for offset := int64(0); offset < fileSize; offset += defaultChunkSize {
+		chunk := make([]byte, defaultChunkSize)
 		n, err := file.Read(chunk)
 		if err != nil && err != io.EOF {
 			return err
@@ -113,7 +113,7 @@ func uploadChunk(
 
 	chunkSize := int64(len(chunk))
 	byteRange := fmt.Sprintf("bytes %d-%d/%d", offset, offset+chunkSize-1, fileSize)
-	lastChunk := offset+chunkSize+1 >= fileSize
+	lastChunk := offset+defaultChunkSize >= fileSize
 
 	req.Header.Set("Content-Length", fmt.Sprint(chunkSize))
 	req.Header.Set("Content-Range", byteRange)
