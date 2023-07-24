@@ -11,6 +11,13 @@ installed on your machine ([link to installer download](https://go.dev/dl/)).
 go install github.com/fractalwagmi/fractal-cli/cmd/fractal@latest
 ```
 
+For convenience, you can add the Go bin directory to your PATH so that you can
+invoke the CLI anywhere using `fractal` instead of the full path to the binary.
+
+```bash
+export PATH=$PATH:$(go env GOPATH)/bin
+```
+
 ## Usage
 
 The only command currently supported is `upload` which can be used to upload and
