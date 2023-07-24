@@ -5,13 +5,8 @@ import (
 	"os"
 )
 
-func UploadFile(url string, file string) error {
-	uploadUrl, err := getResumableUploadUrl(url)
-	if err != nil {
-		return err
-	}
-
-	// TODO(john): upload in chunks and with parallelism to increase upload speed.
+func UploadFile(httpClient *http.Client, uploadUrl string, file string) error {
+	// TODO(john): upload in chunks to protect against transient network errors.
 	data, err := os.Open(file)
 	if err != nil {
 		return err
@@ -23,7 +18,7 @@ func UploadFile(url string, file string) error {
 	}
 	req.Header.Set("Content-Type", "application/zip")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := httpClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -32,7 +27,7 @@ func UploadFile(url string, file string) error {
 	return nil
 }
 
-func getResumableUploadUrl(url string) (string, error) {
+func GetResumableUploadUrl(httpClient *http.Client, url string) (string, error) {
 	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return "", err
@@ -42,7 +37,7 @@ func getResumableUploadUrl(url string) (string, error) {
 	req.Header.Add("Content-Type", "application/zip")
 	req.Header.Add("x-goog-resumable", "start")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := httpClient.Do(req)
 	if err != nil {
 		return "", err
 	}
