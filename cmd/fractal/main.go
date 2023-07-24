@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
 	"os"
 	"strings"
 
@@ -61,7 +62,9 @@ func main() {
 		log.Fatalf("Error generating crc32c: %s\n", err)
 	} else if res, err := sdk.CreateBuild(token, crc32c, args.displayName); err != nil {
 		log.Fatalf("Error creating build: %s\n", err)
-	} else if err := storage.UploadFile(res.UploadUrl, args.archive); err != nil {
+	} else if url, err := storage.GetResumableUploadUrl(http.DefaultClient, res.UploadUrl); err != nil {
+		log.Fatalf("Error exchanging upload URL for resumable upload URL: %s\n", err)
+	} else if err := storage.UploadFile(http.DefaultClient, url, args.archive); err != nil {
 		log.Fatalf("Error uploading file: %s\n", err)
 	} else if err := sdk.UpdateBuild(token, sdk.UpdateBuildRequest{
 		BuildNumber:        res.BuildNumber,

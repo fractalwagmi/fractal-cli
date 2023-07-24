@@ -9,14 +9,13 @@ import (
 	"testing"
 
 	"github.com/fractalwagmi/fractal-cli/pkg/crc32c"
-	testing2 "github.com/fractalwagmi/fractal-cli/pkg/testing"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestGenerateCrc32c(t *testing.T) {
-	tempDir := testing2.TempDir(t)
+	tempDir := t.TempDir()
 	localFilename := filepath.Join(tempDir, uuid.NewString()+".png")
 	downloadFile(t, "https://storage.googleapis.com/fractal-game-releases-test/dog_that_goes_everywhere.png", localFilename)
 
