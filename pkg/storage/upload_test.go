@@ -2,6 +2,7 @@ package storage_test
 
 import (
 	"archive/zip"
+	"context"
 	"io"
 	"net/http"
 	"net/url"
@@ -18,14 +19,21 @@ import (
 
 func TestUploadFile(t *testing.T) {
 	fakeGcs, error := fakestorage.NewServerWithOptions(fakestorage.Options{
-		Host:   "localhost",
-		Port:   8080,
-		Scheme: "http",
+		Host:       "localhost",
+		Port:       8080,
+		Scheme:     "http",
+		PublicHost: "127.0.0.1:8080",
 	})
 	require.NoError(t, error)
 	defer fakeGcs.Stop()
 
 	storageClient := fakeGcs.Client()
+
+	// ensure that bucket is created
+	if err := storageClient.Bucket("test-bucket").Create(context.Background(), "fake-project", nil); err != nil {
+		t.Fatal(err)
+	}
+
 	uploadUrl, err := generateSignedUploadUrl(t, storageClient, "test-bucket", "test-object")
 	require.NoError(t, err)
 
@@ -34,7 +42,10 @@ func TestUploadFile(t *testing.T) {
 	decodedUrl, error := url.QueryUnescape(uploadUrl)
 	require.NoError(t, error)
 
-	require.NoError(t, storage.UploadFile(http.DefaultClient, decodedUrl, z))
+	ru, err := storage.GetResumableUploadUrl(http.DefaultClient, decodedUrl)
+	require.NoError(t, err)
+
+	require.NoError(t, storage.UploadFile(http.DefaultClient, ru, z))
 }
 
 func generateSignedUploadUrl(
@@ -57,7 +68,7 @@ func generateSignedUploadUrl(
 		Method:         "POST",
 		Insecure:       true,
 		Expires:        time.Now().Add(5 * time.Minute),
-		Style:          gstorage.BucketBoundHostname("localhost:8080"),
+		Style:          gstorage.BucketBoundHostname("127.0.0.1:8080/" + bucket),
 		Headers: []string{
 			"x-goog-resumable:start",
 			"Content-Length:0",
