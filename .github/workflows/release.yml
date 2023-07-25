@@ -24,10 +24,10 @@ jobs:
         run: go test -v ./...
 
       - name: Build macOS (Intel)
-        run: CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o release/fractal-cli-macos-amd64 ./cmd/fractal/main.go
+        run: GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o release/fractal-cli-macos-amd64 ./cmd/fractal/main.go
 
       - name: Build macOS (Apple Silicon)
-        run: CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o release/fractal-cli-macos-arm64 ./cmd/fractal/main.go
+        run: GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o release/fractal-cli-macos-arm64 ./cmd/fractal/main.go
 
       - name: Build macOS (Universal fat binary)
         run: lipo -create -output release/fractal-cli-macos-universal release/fractal-cli-macos-amd64 release/fractal-cli-macos-arm64
