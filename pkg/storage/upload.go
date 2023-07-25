@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -28,7 +27,7 @@ func UploadFile(httpClient *http.Client, uploadUrl string, filePath string) erro
 	}
 	fileSize := fileInfo.Size()
 
-	log.Println("Uploading file...")
+	println("Uploading file...")
 
 	// Upload file in chunks with retry policy for resilience against transient connectivity errors.
 	for offset := int64(0); offset < fileSize; offset += defaultChunkSize {
@@ -50,7 +49,7 @@ func UploadFile(httpClient *http.Client, uploadUrl string, filePath string) erro
 		}
 	}
 
-	log.Println("File upload completed successfully!")
+	println("File upload completed successfully!")
 	return nil
 }
 

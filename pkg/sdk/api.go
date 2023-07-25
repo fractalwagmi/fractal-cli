@@ -100,11 +100,6 @@ func UpdateBuild(
 	if res, err := http.DefaultClient.Do(req); err != nil {
 		return err
 	} else if res.StatusCode != http.StatusOK {
-		b, err := io.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-		fmt.Println(string(b))
 		return fmt.Errorf("unexpected status code: %d", res.StatusCode)
 	}
 
