@@ -1,6 +1,6 @@
 # End to end upload test
 
-name: Go
+name: E2E Test Upload
 
 on:
   push:
