@@ -4,6 +4,9 @@ name: E2E Test Upload
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - "v*.*.*"
 
 jobs:
 

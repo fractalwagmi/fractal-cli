@@ -6,8 +6,11 @@
 *.dylib
 *.sh
 .DS_Store
+
+# built binaries
 main
 fractal
+release/
 
 # Test binary, built with `go test -c`
 *.test
