@@ -39,7 +39,7 @@ func commands() []string {
 }
 
 func checkForHelp(command string) {
-	if command == "-h" || command == "--help" {
+	if command == "-h" || command == "-help" || command == "--help" || command == "--h" {
 		log.Fatalf(
 			"To learn more about usage, please invoke one of the following commands with -h: [%s]\n",
 			strings.Join(commands(), ", "),
