@@ -1,0 +1,34 @@
+# End to end upload test
+
+name: E2E Test Upload
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    strategy:
+      matrix:
+        runner: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.runner }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.20'
+    - run: go version
+    - run: go env
+
+    - name: Build CLI
+      run: go build -o fractal ./cmd/fractal/main.go
+
+    # download a test binary
+    - run: curl -X GET https://storage.googleapis.com/fractal-game-releases-test/SanAndreasUnity-3.6-windows.zip -o sanandreas.zip
+
+    # run upload command
+    - run: |
+        ./fractal upload -zip=sanandreas.zip -clientId=${{ secrets.TEST_CLIENT_ID }} -clientSecret=${{ secrets.TEST_CLIENT_SECRET }} -platform=windows -exeFile=SanAndreasUnity.exe -version=1.0.$(date +"%s")-ci

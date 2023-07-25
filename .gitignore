@@ -7,6 +7,7 @@
 *.sh
 .DS_Store
 main
+fractal
 
 # Test binary, built with `go test -c`
 *.test
