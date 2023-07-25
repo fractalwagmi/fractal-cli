@@ -34,10 +34,4 @@ jobs:
 
     # run upload command
     - run: |
-        ./fractal upload \
-          -zip=sanandreas.zip \
-          -clientId=${{ secrets.TEST_CLIENT_ID }} \
-          -clientSecret=${{ secrets.TEST_CLIENT_SECRET }} \
-          -platform=windows \
-          -exeFile=SanAndreasUnity.exe \
-          -version=1.0.$(date +"%s")
+        ./fractal upload -zip=sanandreas.zip -clientId=${{ secrets.TEST_CLIENT_ID }} -clientSecret=${{ secrets.TEST_CLIENT_SECRET }} -platform=windows -exeFile=SanAndreasUnity.exe -version=1.0.$(date +"%s")-ci
