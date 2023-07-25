@@ -7,11 +7,19 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/fractalwagmi/fractal-cli/pkg/functions"
 )
 
 const (
 	defaultChunkSize = 1 << 22 // 4MB in bytes
 )
+
+var backoffSchedule = []time.Duration{
+	1 * time.Second,
+	2 * time.Second,
+	5 * time.Second,
+}
 
 func UploadFile(httpClient *http.Client, uploadUrl string, filePath string) error {
 	file, err := os.Open(filePath)
@@ -37,14 +45,12 @@ func UploadFile(httpClient *http.Client, uploadUrl string, filePath string) erro
 			return err
 		}
 
-		if err := uploadChunkWithRetryPolicy(
-			http.DefaultClient,
-			uploadUrl,
-			// Only use the part of the chunk that contains data (n bytes).
-			chunk[:n],
-			offset,
-			fileSize,
-		); err != nil {
+		if err := functions.RunWithRetryPolicy(
+			backoffSchedule,
+			func() error {
+				// Only use the part of the chunk that contains data (n bytes).
+				return uploadChunk(httpClient, uploadUrl, chunk[:n], offset, fileSize)
+			}); err != nil {
 			return err
 		}
 	}
@@ -69,33 +75,6 @@ func GetResumableUploadUrl(httpClient *http.Client, url string) (string, error) 
 	}
 
 	return res.Header.Get("Location"), nil
-}
-
-var backoffSchedule = []time.Duration{
-	1 * time.Second,
-	2 * time.Second,
-	5 * time.Second,
-}
-
-func uploadChunkWithRetryPolicy(
-	client *http.Client,
-	uploadUrl string,
-	chunk []byte,
-	offset int64,
-	fileSize int64,
-) error {
-	var err error
-
-	for _, backoff := range backoffSchedule {
-		err = uploadChunk(client, uploadUrl, chunk, offset, fileSize)
-		if err == nil {
-			break
-		}
-
-		time.Sleep(backoff)
-	}
-
-	return err
 }
 
 func uploadChunk(
