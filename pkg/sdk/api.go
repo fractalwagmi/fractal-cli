@@ -8,6 +8,8 @@ import (
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/fractalwagmi/fractal-cli/pkg/functions"
 )
 
 const baseUrl = "https://api.fractal.is/sdk"
@@ -22,8 +24,35 @@ type CreateBuildResponse struct {
 	BuildNumber uint32 `json:"buildNumber"`
 }
 
-// Creates a build and returns an upload URL to upload the binary
+var backoffSchedule = []time.Duration{
+	500 * time.Millisecond,
+	1 * time.Second,
+	2 * time.Second,
+}
+
 func CreateBuild(
+	authToken string,
+	crc32c []byte,
+	displayName string,
+) (*CreateBuildResponse, error) {
+	println("Creating a new build...")
+
+	var out *CreateBuildResponse
+
+	if err := functions.RunWithRetryPolicy(backoffSchedule, func() error {
+		var err error
+		out, err = doCreateBuild(authToken, crc32c, displayName)
+		return err
+	}); err != nil {
+		return nil, err
+	} else {
+		fmt.Printf("Build %d created successfully!\n", out.BuildNumber)
+		return out, nil
+	}
+}
+
+// Creates a build and returns an upload URL to upload the binary
+func doCreateBuild(
 	authToken string,
 	crc32c []byte,
 	displayName string,
@@ -72,16 +101,26 @@ type UpdateBuildRequest struct {
 	MacInnerExecutable string `json:"mac_inner_executable,omitempty"`
 }
 
-// Creates a build and returns an upload URL to upload the binary
 func UpdateBuild(
 	authToken string,
 	update UpdateBuildRequest,
 ) error {
-	// TODO(john): remove this and wait for some signal from API when zip
-	// processing is complete. Otherwise, we will get an error saying that windows
-	// or mac files were not found in the .zip archive.
-	time.Sleep(5 * time.Second)
+	println("Updating build configuration with provided arguments...")
+	if err := functions.RunWithRetryPolicy(backoffSchedule, func() error {
+		return doUpdateBuild(authToken, update)
+	}); err != nil {
+		return err
+	} else {
+		println("Build updated successfully!")
+		return nil
+	}
+}
 
+// Creates a build and returns an upload URL to upload the binary
+func doUpdateBuild(
+	authToken string,
+	update UpdateBuildRequest,
+) error {
 	url := baseUrl + "/launcher/build/" + fmt.Sprint(update.BuildNumber) + "/update"
 
 	body, err := json.Marshal(update)
