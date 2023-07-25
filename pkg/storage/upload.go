@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/fractalwagmi/fractal-cli/pkg/functions"
+	progressbar "github.com/schollz/progressbar/v3"
 )
 
 const (
@@ -35,7 +36,7 @@ func UploadFile(httpClient *http.Client, uploadUrl string, filePath string) erro
 	}
 	fileSize := fileInfo.Size()
 
-	println("Uploading file...")
+	bar := progressbar.DefaultBytes(fileSize, "Uploading game binary")
 
 	// Upload file in chunks with retry policy for resilience against transient connectivity errors.
 	for offset := int64(0); offset < fileSize; offset += defaultChunkSize {
@@ -48,8 +49,14 @@ func UploadFile(httpClient *http.Client, uploadUrl string, filePath string) erro
 		if err := functions.RunWithRetryPolicy(
 			backoffSchedule,
 			func() error {
+				// chunks may be uploaded multiple times with retries, so always reset to
+				// 'offset' at the beginning on the individual chunk upload.
+				if err := bar.Set64(offset); err != nil {
+					return err
+				}
+
 				// Only use the part of the chunk that contains data (n bytes).
-				return uploadChunk(httpClient, uploadUrl, chunk[:n], offset, fileSize)
+				return uploadChunk(httpClient, uploadUrl, chunk[:n], offset, fileSize, bar)
 			}); err != nil {
 			return err
 		}
@@ -77,14 +84,33 @@ func GetResumableUploadUrl(httpClient *http.Client, url string) (string, error) 
 	return res.Header.Get("Location"), nil
 }
 
+type wrapper struct {
+	io.Reader
+	bar *progressbar.ProgressBar
+	n   int
+}
+
+func (w *wrapper) Read(p []byte) (int, error) {
+	n, err := w.Reader.Read(p)
+	w.n += n
+	w.bar.Add(n)
+	return n, err
+}
+
 func uploadChunk(
 	client *http.Client,
 	uploadUrl string,
 	chunk []byte,
 	offset int64,
 	fileSize int64,
+	bar *progressbar.ProgressBar,
 ) error {
-	req, err := http.NewRequest("PUT", uploadUrl, bytes.NewReader(chunk))
+	w := &wrapper{
+		Reader: bytes.NewReader(chunk),
+		bar:    bar,
+	}
+
+	req, err := http.NewRequest("PUT", uploadUrl, w)
 	if err != nil {
 		return err
 	}
@@ -109,5 +135,6 @@ func uploadChunk(
 	if lastChunk && res.StatusCode != http.StatusOK {
 		return fmt.Errorf("chunk upload failed: %v", err)
 	}
+
 	return nil
 }

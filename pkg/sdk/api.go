@@ -28,6 +28,9 @@ var backoffSchedule = []time.Duration{
 	500 * time.Millisecond,
 	1 * time.Second,
 	2 * time.Second,
+	3 * time.Second,
+	4 * time.Second,
+	5 * time.Second,
 }
 
 func CreateBuild(
