@@ -18,6 +18,9 @@ invoke the CLI anywhere using `fractal` instead of the full path to the binary.
 export PATH=$PATH:$(go env GOPATH)/bin
 ```
 
+Alternatively, you can download and run a pre-built binary from the project's
+[releases page](https://github.com/fractalwagmi/fractal-cli/releases).
+
 ## Usage
 
 The only command currently supported is `upload` which can be used to upload and
