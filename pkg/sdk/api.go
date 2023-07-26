@@ -34,6 +34,7 @@ var backoffSchedule = []time.Duration{
 }
 
 func CreateBuild(
+	client *http.Client,
 	authToken string,
 	crc32c []byte,
 	displayName string,
@@ -44,7 +45,7 @@ func CreateBuild(
 
 	if err := functions.RunWithRetryPolicy(backoffSchedule, func() error {
 		var err error
-		out, err = doCreateBuild(authToken, crc32c, displayName)
+		out, err = doCreateBuild(client, authToken, crc32c, displayName)
 		return err
 	}); err != nil {
 		return nil, err
@@ -56,6 +57,7 @@ func CreateBuild(
 
 // Creates a build and returns an upload URL to upload the binary
 func doCreateBuild(
+	client *http.Client,
 	authToken string,
 	crc32c []byte,
 	displayName string,
@@ -78,8 +80,9 @@ func doCreateBuild(
 
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("Authorization", "Bearer "+authToken)
+	req.Header.Add("User-Agent", "fractal-cli")
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -105,12 +108,13 @@ type UpdateBuildRequest struct {
 }
 
 func UpdateBuild(
+	client *http.Client,
 	authToken string,
 	update UpdateBuildRequest,
 ) error {
 	println("Updating build configuration with provided arguments...")
 	if err := functions.RunWithRetryPolicy(backoffSchedule, func() error {
-		return doUpdateBuild(authToken, update)
+		return doUpdateBuild(client, authToken, update)
 	}); err != nil {
 		return err
 	} else {
@@ -121,6 +125,7 @@ func UpdateBuild(
 
 // Creates a build and returns an upload URL to upload the binary
 func doUpdateBuild(
+	client *http.Client,
 	authToken string,
 	update UpdateBuildRequest,
 ) error {
@@ -138,8 +143,9 @@ func doUpdateBuild(
 
 	req.Header.Add("accept", "application/json")
 	req.Header.Add("Authorization", "Bearer "+authToken)
+	req.Header.Add("User-Agent", "fractal-cli")
 
-	if res, err := http.DefaultClient.Do(req); err != nil {
+	if res, err := client.Do(req); err != nil {
 		return err
 	} else if res.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status code: %d", res.StatusCode)
