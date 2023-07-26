@@ -18,6 +18,13 @@ var commandMap = map[string]bool{
 }
 
 func main() {
+	if len(os.Args) < 2 {
+		log.Fatalf(
+			"Please provide a command. Available commands: [%s]\n",
+			strings.Join(commands(), ", "),
+		)
+	}
+
 	command := os.Args[1]
 
 	checkForHelp(command)
