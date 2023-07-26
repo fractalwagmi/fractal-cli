@@ -122,7 +122,7 @@ func uploadChunk(
 	req.Header.Set("Content-Length", fmt.Sprint(chunkSize))
 	req.Header.Set("Content-Range", byteRange)
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := client.Do(req)
 	if err != nil {
 		return err
 	}

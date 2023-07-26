@@ -48,17 +48,19 @@ func Run() {
 	sanitizeArguments(&args)
 	validateArguments(args)
 
-	if token, err := auth.GenerateToken(args.clientId, args.clientSecret); err != nil {
+	httpClient := http.DefaultClient
+
+	if token, err := auth.GenerateToken(httpClient, args.clientId, args.clientSecret); err != nil {
 		log.Fatalf("Error generating token: %s\n", err)
 	} else if crc32c, err := crc32c.GenerateCrc32C(args.archive); err != nil {
 		log.Fatalf("Error generating crc32c: %s\n", err)
-	} else if res, err := sdk.CreateBuild(token, crc32c, args.displayName); err != nil {
+	} else if res, err := sdk.CreateBuild(httpClient, token, crc32c, args.displayName); err != nil {
 		log.Fatalf("Error creating build: %s\n", err)
-	} else if url, err := storage.GetResumableUploadUrl(http.DefaultClient, res.UploadUrl); err != nil {
+	} else if url, err := storage.GetResumableUploadUrl(httpClient, res.UploadUrl); err != nil {
 		log.Fatalf("Error exchanging upload URL for resumable upload URL: %s\n", err)
-	} else if err := storage.UploadFile(http.DefaultClient, url, args.archive); err != nil {
+	} else if err := storage.UploadFile(httpClient, url, args.archive); err != nil {
 		log.Fatalf("Error uploading file: %s\n", err)
-	} else if err := sdk.UpdateBuild(token, sdk.UpdateBuildRequest{
+	} else if err := sdk.UpdateBuild(httpClient, token, sdk.UpdateBuildRequest{
 		BuildNumber:        res.BuildNumber,
 		Platform:           args.platform,
 		Version:            args.version,
