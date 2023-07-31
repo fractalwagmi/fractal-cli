@@ -10,6 +10,7 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -191,7 +192,15 @@ func NewServerWithOptions(options Options) (*Server, error) {
 }
 
 func newServer(options Options) (*Server, error) {
-	backendObjects := bufferedObjectsToBackendObjects(options.InitialObjects)
+	if len(options.InitialObjects) > 0 && options.Seed != "" {
+		return nil, errors.New("please provide either a seed directory or a list of initial objects")
+	}
+
+	var backendObjects []backend.StreamingObject
+	if len(options.InitialObjects) > 0 {
+		backendObjects = bufferedObjectsToBackendObjects(options.InitialObjects)
+	}
+
 	var backendStorage backend.Storage
 	var err error
 	if options.StorageRoot != "" {
@@ -216,6 +225,10 @@ func newServer(options Options) (*Server, error) {
 		eventManager: &notification.PubsubEventManager{},
 	}
 	s.buildMuxer()
+	_, err = s.seed()
+	if err != nil {
+		return nil, err
+	}
 	return &s, nil
 }
 
@@ -248,6 +261,7 @@ func (s *Server) buildMuxer() {
 		r.Path("/b").Methods(http.MethodGet).HandlerFunc(jsonToHTTPHandler(s.listBuckets))
 		r.Path("/b").Methods(http.MethodPost).HandlerFunc(jsonToHTTPHandler(s.createBucketByPost))
 		r.Path("/b/{bucketName}").Methods(http.MethodGet).HandlerFunc(jsonToHTTPHandler(s.getBucket))
+		r.Path("/b/{bucketName}").Methods(http.MethodPatch).HandlerFunc(jsonToHTTPHandler(s.updateBucket))
 		r.Path("/b/{bucketName}").Methods(http.MethodDelete).HandlerFunc(jsonToHTTPHandler(s.deleteBucket))
 		r.Path("/b/{bucketName}/o").Methods(http.MethodGet).HandlerFunc(jsonToHTTPHandler(s.listObjects))
 		r.Path("/b/{bucketName}/o").Methods(http.MethodPost).HandlerFunc(jsonToHTTPHandler(s.insertObject))
@@ -305,7 +319,11 @@ func (s *Server) buildMuxer() {
 	s.handler = handler
 }
 
-func (s *Server) reseedServer(r *http.Request) jsonResponse {
+func (s *Server) seed() ([]backend.StreamingObject, error) {
+	if s.options.Seed == "" {
+		return nil, nil
+	}
+
 	initialObjects, emptyBuckets := generateObjectsFromFiles(s.options.Seed)
 
 	backendObjects := bufferedObjectsToBackendObjects(initialObjects)
@@ -317,11 +335,19 @@ func (s *Server) reseedServer(r *http.Request) jsonResponse {
 		s.backend, err = backend.NewStorageMemory(backendObjects)
 	}
 	if err != nil {
-		return errToJsonResponse(err)
+		return nil, err
 	}
 
 	for _, bucketName := range emptyBuckets {
 		s.CreateBucketWithOpts(CreateBucketOpts{Name: bucketName})
+	}
+	return backendObjects, nil
+}
+
+func (s *Server) reseedServer(r *http.Request) jsonResponse {
+	backendObjects, err := s.seed()
+	if err != nil {
+		return errToJsonResponse(err)
 	}
 
 	return jsonResponse{data: fromBackendObjects(backendObjects)}
