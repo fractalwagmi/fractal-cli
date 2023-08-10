@@ -113,7 +113,11 @@ func (s *storageFS) ListBuckets() ([]Bucket, error) {
 			if err != nil {
 				return nil, fmt.Errorf("failed to unescape object name %s: %w", info.Name(), err)
 			}
-			buckets = append(buckets, Bucket{Name: unescaped})
+			fileInfo, err := info.Info()
+			if err != nil {
+				return nil, fmt.Errorf("failed to get file info for %s: %w", info.Name(), err)
+			}
+			buckets = append(buckets, Bucket{Name: unescaped, TimeCreated: timespecToTime(createTimeFromFileInfo(fileInfo))})
 		}
 	}
 	return buckets, nil
@@ -155,6 +159,9 @@ func (s *storageFS) GetBucket(name string) (Bucket, error) {
 func getBucketAttributes(path string) (BucketAttrs, error) {
 	content, err := os.ReadFile(path + bucketMetadataSuffix)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return BucketAttrs{}, nil
+		}
 		return BucketAttrs{}, err
 	}
 	var attrs BucketAttrs
