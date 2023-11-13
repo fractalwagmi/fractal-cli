@@ -36,8 +36,8 @@ github.com/davecgh/go-spew/spew
 # github.com/felixge/httpsnoop v1.0.2
 ## explicit; go 1.13
 github.com/felixge/httpsnoop
-# github.com/fsouza/fake-gcs-server v1.47.4
-## explicit; go 1.19
+# github.com/fsouza/fake-gcs-server v1.47.6
+## explicit; go 1.20
 github.com/fsouza/fake-gcs-server/fakestorage
 github.com/fsouza/fake-gcs-server/internal/backend
 github.com/fsouza/fake-gcs-server/internal/checksum
@@ -117,9 +117,6 @@ github.com/rivo/uniseg
 # github.com/schollz/progressbar/v3 v3.13.1
 ## explicit; go 1.13
 github.com/schollz/progressbar/v3
-# github.com/sirupsen/logrus v1.9.3
-## explicit; go 1.13
-github.com/sirupsen/logrus
 # github.com/stretchr/testify v1.8.4
 ## explicit; go 1.20
 github.com/stretchr/testify/assert
