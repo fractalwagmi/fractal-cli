@@ -3,7 +3,7 @@ module github.com/fractalwagmi/fractal-cli
 go 1.20
 
 require (
-	cloud.google.com/go/storage v1.35.1
+	cloud.google.com/go/storage v1.36.0
 	github.com/fsouza/fake-gcs-server v1.47.6
 	github.com/google/uuid v1.4.0
 	github.com/schollz/progressbar/v3 v3.13.1
