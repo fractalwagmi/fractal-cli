@@ -5,7 +5,7 @@ go 1.20
 require (
 	cloud.google.com/go/storage v1.35.1
 	github.com/fsouza/fake-gcs-server v1.47.6
-	github.com/google/uuid v1.4.0
+	github.com/google/uuid v1.6.0
 	github.com/schollz/progressbar/v3 v3.13.1
 	github.com/stretchr/testify v1.8.4
 )
